@@ -1,0 +1,95 @@
+---
+title: "Lista 4"
+author: "Daniel Marques"
+date: "`r Sys.Date()`"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Carregando pacotes
+
+```{r echo=TRUE}
+pacman::p_load("tidyverse",
+               "lubridate",
+               "readr",
+               "scales")
+```
+
+
+## A base de dados
+
+Para essa tarefa, vou utilizar uma base de dados de elaboração própria que traz o calculo de rotatitivadade mensal dos servidores de livre provimento do Executivo.
+
+Os dados estão no csv "calculo_rotatividade_b.csv".
+
+## Importanto a base de dados
+
+Faço a importação da base de dados, já formatando o dado do mês a que se refere o mês de cada linha em um formato de data legível pelo R.
+
+```{r}
+setwd("C:/Users/danie/Documentos/Mestrado/Pre_Projeto/Dados/Servidores/Cadastros")
+calculo_rotatividade_b <- read_csv("calculo_rotatividade_b.csv") %>%
+  mutate(mes = ymd(mes))
+```
+
+## Extraindo o ano da data
+
+Como, em cada linha, o mês está salvo no formato de data completa, é preciso extrair o dado de "ano" para permitir o agrupamento por ano.
+
+```{r}
+# Adicionar uma coluna "ano" extraindo o ano da coluna "mes"
+calculo_rotatividade_b$ano <- format(as.Date(calculo_rotatividade_b$mes, format="%Y-%m-%d"), "%Y")
+```
+
+## Calculando média e intervalo de confiança
+
+```{r echo=TRUE}
+dados_agrupados <- calculo_rotatividade_b %>%
+  group_by(ano) %>%
+  summarise(
+    media_rotatividade = mean(rotatividade, na.rm = TRUE),
+    sd_rotatividade = sd(rotatividade, na.rm = TRUE),
+    n = n(),
+    erro_padrao = sd_rotatividade / sqrt(n),
+    ic_inferior = media_rotatividade - qt(0.975, df = n - 1) * erro_padrao,
+    ic_superior = media_rotatividade + qt(0.975, df = n - 1) * erro_padrao
+  )
+
+```
+
+## Criando o gráfico
+
+```{r eval=FALSE, echo=TRUE}
+ggplot(dados_agrupados, aes(x = ano, y = media_rotatividade)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ic_inferior, ymax = ic_superior), width = 0.2) +
+  labs(
+    title = "Estimativas Intervalares de Rotatividade por Ano",
+    x = "Ano",
+    y = "Rotatividade"
+  ) +
+  theme_minimal()
+```
+
+## Resultado
+
+```{r echo=FALSE}
+ggplot(dados_agrupados, aes(x = ano, y = media_rotatividade)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ic_inferior, ymax = ic_superior), width = 0.2) +
+  labs(
+    title = "Estimativas Intervalares de Rotatividade por Ano",
+    x = "Ano",
+    y = "Rotatividade"
+  ) +
+  theme_minimal()
+```
+
+## Hipoteses
+
+H0 = O impeachment de Dilma Roussef não teve impacto na rotatividade dos servidores públicos comissionados
+
+H1 = O período após o impeachment de Dilma tem uma maior rotatividade de cargos públicos de livre provimento
