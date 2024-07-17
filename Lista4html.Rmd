@@ -6,7 +6,7 @@ output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Carregando pacotes
@@ -29,8 +29,8 @@ Os dados estão no csv "calculo_rotatividade_b.csv".
 
 Faço a importação da base de dados, já formatando o dado do mês a que se refere o mês de cada linha em um formato de data legível pelo R.
 
-```{r}
-setwd("C:/Users/danie/Documentos/Mestrado/Pre_Projeto/Dados/Servidores/Cadastros")
+```{r echo=TRUE, message=FALSE}
+setwd("~/Lista4/tarefa4")
 calculo_rotatividade_b <- read_csv("calculo_rotatividade_b.csv") %>%
   mutate(mes = ymd(mes))
 ```
@@ -41,7 +41,8 @@ Como, em cada linha, o mês está salvo no formato de data completa, é preciso 
 
 ```{r}
 # Adicionar uma coluna "ano" extraindo o ano da coluna "mes"
-calculo_rotatividade_b$ano <- format(as.Date(calculo_rotatividade_b$mes, format="%Y-%m-%d"), "%Y")
+calculo_rotatividade_b <- calculo_rotatividade_b %>%
+  mutate(ano = year(mes))
 ```
 
 ## Calculando média e intervalo de confiança
